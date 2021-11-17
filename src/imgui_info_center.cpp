@@ -38,8 +38,6 @@ void ImInfoCardBasic::Show(int32_t index, const ImVec2& viewpoint_size,
 
     // Update and determine if the window shoule change status.
     UpdateCardStatus(ImGui::IsWindowHovered(kInfoCardIsHoveredFlags));
-    std::cout << index << " " << GetActiveTime() << " " << lifetime_ << " "
-              << static_cast<int>(status_) << std::endl;
 
     ImGui::PopTextWrapPos();
     ImGui::End();
@@ -157,16 +155,13 @@ void ImInfoCardProgressBar::Show(int32_t index, const ImVec2& viewpoint_size,
 
     // Content field
     ImGui::Text(this->get_visible_content().c_str());
-    ImGui::Text("Progress: %.2f%", progress_);
+    ImGui::Text("Progress: %.2f percent", progress_);
 
     // Update window offset.
     left_bottom_offset->y -= ImGui::GetWindowHeight() + kCardHorizontalInterval;
 
     // Update and determine if the window shoule change status.
     this->UpdateCardStatus(ImGui::IsWindowHovered(kInfoCardIsHoveredFlags));
-
-    std::cout << index << " " << GetActiveTime() << " " << get_lifetime() << " "
-              << static_cast<int>(get_status()) << std::endl;
 
     ImGui::PopTextWrapPos();
     ImGui::End();

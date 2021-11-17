@@ -24,7 +24,7 @@ constexpr float kCardHorizontalInterval = 15.0f;
 constexpr float kCardVerticalInterval = 15.0f;
 
 // Time from InfoCard from non-visible to fully visible (vise versa).
-constexpr int64_t kTransitTime = 1000;
+constexpr int64_t kTransitTime = 300;
 
 // When hovering an info card, it will last withou taking care of original
 // lifetime. After mouse has been removed, it will be cleared until this time
@@ -36,8 +36,7 @@ constexpr int64_t kInfoCardWindowFlags = ImGuiWindowFlags_AlwaysAutoResize |
                                          ImGuiWindowFlags_NoNav;
 constexpr int64_t kInfoCardIsHoveredFlags =
     ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
-    ImGuiHoveredFlags_AllowWhenBlockedByPopup |
-    ImGuiHoveredFlags_AllowWhenOverlapped;
+    ImGuiHoveredFlags_AllowWhenBlockedByPopup;
 
 enum class ImInfoCardStatus { PREPARE, EXECUTE, CLEAR, TERMINATE };
 
