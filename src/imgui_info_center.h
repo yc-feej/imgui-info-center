@@ -1,12 +1,15 @@
 // Author: Yuchen Liu (yuchenliu@deeproute.ai)
 #pragma once
 
+#include <atomic>
 #include <chrono>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+#include "font_awesome_5.h"
 #include "third_party/imgui/imgui.h"
 
 namespace ImInfo {
@@ -40,20 +43,26 @@ constexpr int64_t kInfoCardIsHoveredFlags =
 
 enum class ImInfoCardStatus { PREPARE, EXECUTE, CLEAR, TERMINATE };
 
+enum class ImInfoCardType { UNKNOWN, SUCCESS, INFO, WARNING, ERROR };
+
 // Simple but classic information card, allow showing title(optional) and
 // content(mandatory). It could be used by a manager defined by your self, or
 // through the ImInfoCenter, which provides an easy way to control info cards'
 // behavior just like ImGuiIO.
 class ImInfoCardBasic {
  public:
-  ImInfoCardBasic(const std::string& title, const std::string& visible_content,
-                  int64_t lifetime)
-      : title_(title), visible_content_(visible_content), lifetime_(lifetime) {
+  ImInfoCardBasic(const ImInfoCardType& type, const std::string& title,
+                  const std::string& visible_content, int64_t lifetime)
+      : type_(type),
+        title_(title),
+        visible_content_(visible_content),
+        lifetime_(lifetime) {
     Init();
   }
 
-  ImInfoCardBasic(const std::string& title, const std::string& visible_content)
-      : title_(title), visible_content_(visible_content) {
+  ImInfoCardBasic(const ImInfoCardType& type, const std::string& title,
+                  const std::string& visible_content)
+      : type_(type), title_(title), visible_content_(visible_content) {
     Init();
   }
 
@@ -95,9 +104,52 @@ class ImInfoCardBasic {
   }
   inline std::string* mutable_visible_content() { return &visible_content_; }
 
-  inline const ImVec4& get_color() const { return color_; }
+  inline void set_type(const ImInfoCardType& type) { type_ = type; }
+  inline const ImInfoCardType& get_type() const { return type_; }
 
   inline int64_t get_lifetime() const { return lifetime_; }
+
+  inline const ImVec4 get_color() const { return color_; }
+
+  inline const char* get_icon() const {
+    switch (type_) {
+      case ImInfoCardType::SUCCESS: {
+        return ICON_FA_CHECK_SQUARE;
+      }
+      case ImInfoCardType::INFO: {
+        return ICON_FA_INFO_CIRCLE;
+      }
+      case ImInfoCardType::WARNING: {
+        return ICON_FA_EXCLAMATION_TRIANGLE;
+      }
+      case ImInfoCardType::ERROR: {
+        return ICON_FA_TIMES_CIRCLE;
+      }
+      default: {
+        return ICON_FA_SQUARE;
+      }
+    }
+  }
+
+  inline const ImVec4 get_icon_color() const {
+    switch (type_) {
+      case ImInfoCardType::SUCCESS: {
+        return ImVec4(0.35f, 0.8f, 0.35f, 1.0f);
+      }
+      case ImInfoCardType::INFO: {
+        return ImVec4(0.35f, 0.8f, 0.8f, 1.0f);
+      }
+      case ImInfoCardType::WARNING: {
+        return ImVec4(0.8f, 0.8f, 0.35f, 1.0f);
+      }
+      case ImInfoCardType::ERROR: {
+        return ImVec4(0.8f, 0.35f, 0.35f, 1.0f);
+      }
+      default: {
+        return ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+      }
+    }
+  }
 
  protected:
   // The whole process function for card status. Both class-specific operations
@@ -137,6 +189,8 @@ class ImInfoCardBasic {
 
  private:
   ImInfoCardStatus status_{ImInfoCardStatus::PREPARE};
+
+  ImInfoCardType type_{ImInfoCardType::UNKNOWN};
 
   std::string title_;
   std::string visible_content_;
@@ -182,6 +236,78 @@ class ImInfoCardProgressBar : public ImInfoCardBasic {
   float progress_{0.0f};
 };
 
+enum class ImInfoCardStageCode { UNKNOWN, BUSY, SUCCESS, ERROR };
+
+class ImInfoCardStage : public ImInfoCardBasic {
+ public:
+  template <class... Args>
+  ImInfoCardStage(Args&&... args)
+      : ImInfoCardBasic(std::forward<Args>(args)...) {}
+
+  virtual void Show(int32_t index, const ImVec2& viewpoint_size,
+                    ImVec2* left_bottom_offset) override;
+
+  inline void set_stage(const ImInfoCardStageCode& stage) { stage_ = stage; }
+  inline const ImInfoCardStageCode& get_stage() const { return stage_; }
+
+  inline const char* get_icon_by_stage() const {
+    switch (stage_) {
+      case ImInfoCardStageCode::SUCCESS: {
+        return ICON_FA_CHECK_SQUARE;
+      }
+      case ImInfoCardStageCode::BUSY: {
+        return ICON_FA_INFO_CIRCLE;
+      }
+      case ImInfoCardStageCode::ERROR: {
+        return ICON_FA_TIMES_CIRCLE;
+      }
+      default: {
+        return ICON_FA_SQUARE;
+      }
+    }
+  }
+
+  inline const ImVec4 get_icon_color_by_stage() const {
+    switch (stage_) {
+      case ImInfoCardStageCode::SUCCESS: {
+        return ImVec4(0.35f, 0.8f, 0.35f, 1.0f);
+      }
+      case ImInfoCardStageCode::BUSY: {
+        return ImVec4(0.35f, 0.8f, 0.8f, 1.0f);
+      }
+      case ImInfoCardStageCode::ERROR: {
+        return ImVec4(0.8f, 0.35f, 0.35f, 1.0f);
+      }
+      default: {
+        return ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+      }
+    }
+  }
+
+  inline const std::string get_stage_prefix() const {
+    switch (stage_) {
+      case ImInfoCardStageCode::SUCCESS: {
+        return "[SUCCESS]";
+      }
+      case ImInfoCardStageCode::BUSY: {
+        return "[BUSY]";
+      }
+      case ImInfoCardStageCode::ERROR: {
+        return "[ERROR]";
+      }
+      default: {
+        return "";
+      }
+    }
+  }
+
+ protected:
+  virtual void UpdateCardStatus(bool is_hovered) override;
+
+ private:
+  ImInfoCardStageCode stage_{ImInfoCardStageCode::BUSY};
+};
+
 class ImInfoCenter {
  public:
   ImInfoCenter(const ImInfoCenter&) = delete;
@@ -193,8 +319,9 @@ class ImInfoCenter {
   }
 
   // Add a card with text message only.
-  // @Input: title-string(optional), content-string(optional-will create one if
-  // not provided), lifetime-int64(optional)
+  // @Input: icon-ImInfoCardType(optional), title-string(the same with icon),
+  // content-string(optional-will create one if not provided),
+  // lifetime-int64(optional)
   // @Output: index-int32
   template <class... Args>
   int32_t AddCardBasic(Args&&... args) {
@@ -206,9 +333,9 @@ class ImInfoCenter {
   // Add a card with progress bar. It's users responsibility to manage progress
   // using index and provided interfaces. The card won't disappear if progress
   // not reached 100%.
-  // @Input: progress-float(optional), title-string(optional),
-  // content-string(optional-will create one if not provided),
-  // lifetime-int64(optional)
+  // @Input: progress-float(optional), icon-ImInfoCardType(optional),
+  // title-string(the same with icon), content-string(optional-will create one
+  // if not provided), lifetime-int64(optional)
   // @Output: index-int32
   template <class... Args>
   int32_t AddCardProgressBar(Args&&... args) {
@@ -217,40 +344,34 @@ class ImInfoCenter {
     return counter_;
   }
 
+  // Add a card with stage. Stage is switchable, managed by ImInfoCardStageCode.
+  // The card won't disappear until stage turned into success.
+  // @Input: icon-ImInfoCardType(optional), title-string(the same with icon),
+  // content-string(optional-will create one if not provided),
+  // lifetime-int64(optional)
+  // @Output: index-int32
+  template <class... Args>
+  int32_t AddCardStage(Args&&... args) {
+    card_status_.emplace(++counter_,
+                         new ImInfoCardStage(std::forward<Args>(args)...));
+    return counter_;
+  }
+
   // Reset an progress-bar card's progress to a given value. Won't do anything
   // if it's not progress-bar type. Will be limited to 0-100.
-  void SetCardProgress(int32_t index, float progress) {
-    auto* progress_bar_ptr = GetCardPtr<ImInfoCardProgressBar>(index);
-    if (progress_bar_ptr == nullptr) return;
-
-    progress_bar_ptr->set_progress(progress);
-  }
+  void SetCardProgress(int32_t index, float progress);
 
   // Add an progress-bar card's progress with a given value. Won't do anything
   // if it's not progress-bar type. The final result will be limited to 0-100.
-  void IncreaseCardProgress(int32_t index, float progress) {
-    auto* progress_bar_ptr = GetCardPtr<ImInfoCardProgressBar>(index);
-    if (progress_bar_ptr == nullptr) return;
+  void IncreaseCardProgress(int32_t index, float progress);
 
-    progress_bar_ptr->increase_progress(progress);
-  }
+  // Update a stage card's stage with a given type. Won't do anything if it's
+  // not a stage type.
+  void SetCardStage(int32_t index, const ImInfoCardStageCode& stage);
 
   // Main render loop for cards and notice page. Also handles deletion of
   // out-of-lifetime info cards.
-  void Show() {
-    const ImVec2 viewpoint_size = ImGui::GetMainViewport()->Size;
-    ImVec2 left_bottom_offset{kCardVerticalInterval,
-                              viewpoint_size.y - kCardHorizontalInterval};
-
-    for (auto iter = card_status_.begin(); iter != card_status_.end();) {
-      if (iter->second.get()->get_status() == ImInfoCardStatus::TERMINATE) {
-        iter = card_status_.erase(iter);
-      } else {
-        iter->second->Show(iter->first, viewpoint_size, &left_bottom_offset);
-        iter++;
-      }
-    }
-  }
+  void Show();
 
  private:
   ImInfoCenter() = default;
@@ -263,9 +384,9 @@ class ImInfoCenter {
     return card_ptr;
   }
 
-  // This is not thread-safe. You can use mutex to control AddCard() behavior to
-  // make it to work properly under multi-threaded environment.
-  int32_t counter_{0};
+  std::mutex op_lock_;
+
+  std::atomic<int32_t> counter_{0};
   std::unordered_map<int32_t, std::unique_ptr<ImInfoCardBasic>> card_status_;
 };
 
