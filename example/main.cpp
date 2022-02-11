@@ -1,5 +1,6 @@
 // Author: Yuchen Liu (yuchenliu@deeproute.ai)
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -9,7 +10,9 @@
 //
 #include "GL/gl.h"
 #include "GLFW/glfw3.h"
+#include "fa_solid_900.h"
 #include "src/imgui_info_center.h"
+#include "tahoma.h"
 #include "third_party/imgui/imgui.h"
 #include "third_party/imgui/imgui_impl_glfw.h"
 #include "third_party/imgui/imgui_impl_opengl3.h"
@@ -108,11 +111,34 @@ int main() {
   ImGui_ImplGlfw_InitForOpenGL(main_window, true);
   ImGui_ImplOpenGL3_Init(glsl_version.c_str());
 
+  ImGuiIO* io = &ImGui::GetIO();
+
+  // We must load a font before loading notify, because we cannot merge
+  // font-awesome with default font FontDataOwnedByAtlas = false is required
+  // (also in ImGui::MergeIconsWithLatestFont()) because otherwise ImGui will
+  // call free() while freeing resources which will lead into a crash since
+  // tahoma is defined as readonly and wasn't allocated with malloc()
+  ImFontConfig font_cfg;
+  font_cfg.FontDataOwnedByAtlas = false;
+  io->Fonts->AddFontFromMemoryTTF((void*)tahoma, sizeof(tahoma), 17.f,
+                                  &font_cfg);
+  static const ImWchar icons_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
+
+  ImFontConfig icons_config;
+  icons_config.MergeMode = true;
+  icons_config.PixelSnapH = true;
+  icons_config.FontDataOwnedByAtlas = false;
+
+  io->Fonts->AddFontFromMemoryTTF((void*)fa_solid_900, sizeof(fa_solid_900),
+                                  16.0f, &icons_config, icons_ranges);
+
   std::string card_title;
   std::string card_content;
+  ImInfo::ImInfoCardType card_type = ImInfo::ImInfoCardType::UNKNOWN;
   int32_t card_lifetime = 3000;
   float card_progress = 0.0f;
   std::vector<int32_t> progress_index;
+  std::map<int32_t, int32_t> stage_index;
 
   // Main loop.
   while (!glfwWindowShouldClose(main_window)) {
@@ -142,11 +168,37 @@ int main() {
       ImGui::InputInt("lifetime", &card_lifetime);
       ImGui::InputFloat("progress", &card_progress);
 
+      if (ImGui::RadioButton("Unknown",
+                             card_type == ImInfo::ImInfoCardType::UNKNOWN)) {
+        card_type = ImInfo::ImInfoCardType::UNKNOWN;
+      }
+      ImGui::SameLine();
+      if (ImGui::RadioButton("Success",
+                             card_type == ImInfo::ImInfoCardType::SUCCESS)) {
+        card_type = ImInfo::ImInfoCardType::SUCCESS;
+      }
+      ImGui::SameLine();
+      if (ImGui::RadioButton("Info",
+                             card_type == ImInfo::ImInfoCardType::INFO)) {
+        card_type = ImInfo::ImInfoCardType::INFO;
+      }
+      ImGui::SameLine();
+      if (ImGui::RadioButton("Warning",
+                             card_type == ImInfo::ImInfoCardType::WARNING)) {
+        card_type = ImInfo::ImInfoCardType::WARNING;
+      }
+      ImGui::SameLine();
+      if (ImGui::RadioButton("Error",
+                             card_type == ImInfo::ImInfoCardType::ERROR)) {
+        card_type = ImInfo::ImInfoCardType::ERROR;
+      }
+
       ImGui::Separator();
 
       ImGui::Text("Create a card with: ");
       if (ImGui::Button("current parameters")) {
-        info_center.AddCardBasic(card_title, card_content, card_lifetime);
+        info_center.AddCardBasic(card_type, card_title, card_content,
+                                 card_lifetime);
       }
       if (ImGui::Button("no title")) {
         info_center.AddCardBasic(card_content, card_lifetime);
@@ -156,12 +208,29 @@ int main() {
       }
       if (ImGui::Button("with increasing progress bar")) {
         int32_t ind = info_center.AddCardProgressBar(
-            card_progress, card_title, card_content, card_lifetime);
+            card_progress, card_type, card_title, card_content, card_lifetime);
         progress_index.emplace_back(ind);
+      }
+      if (ImGui::Button("with stage")) {
+        int32_t ind = info_center.AddCardStage(card_type, card_title,
+                                               card_content, card_lifetime);
+        stage_index.emplace(ind, 0);
       }
 
       for (const auto& ind : progress_index) {
         info_center.IncreaseCardProgress(ind, 0.5f);
+      }
+
+      for (auto& ind_pair : stage_index) {
+        ++ind_pair.second;
+        if (ind_pair.second == 100) {
+          info_center.SetCardStage(ind_pair.first,
+                                   ImInfo::ImInfoCardStageCode::ERROR);
+        }
+        if (ind_pair.second == 500) {
+          info_center.SetCardStage(ind_pair.first,
+                                   ImInfo::ImInfoCardStageCode::SUCCESS);
+        }
       }
     }
     ImGui::End();

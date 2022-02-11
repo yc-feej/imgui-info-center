@@ -26,7 +26,11 @@ void ImInfoCardBasic::Show(int32_t index, const ImVec2& viewpoint_size,
 
     // Title field
     if (!title_.empty()) {
-      ImGui::TextColored(color_, title_.c_str());
+      if (type_ != ImInfoCardType::UNKNOWN) {
+        ImGui::TextColored(get_icon_color(), get_icon());
+        ImGui::SameLine();
+      }
+      ImGui::TextColored(get_icon_color(), get_title().c_str());
       ImGui::Separator();
     }
 
@@ -149,7 +153,11 @@ void ImInfoCardProgressBar::Show(int32_t index, const ImVec2& viewpoint_size,
 
     // Title field
     if (!this->get_title().empty()) {
-      ImGui::TextColored(this->get_color(), this->get_title().c_str());
+      if (this->get_type() != ImInfoCardType::UNKNOWN) {
+        ImGui::TextColored(this->get_icon_color(), this->get_icon());
+        ImGui::SameLine();
+      }
+      ImGui::TextColored(this->get_icon_color(), this->get_title().c_str());
       ImGui::Separator();
     }
 
@@ -200,6 +208,123 @@ void ImInfoCardProgressBar::UpdateCardStatus(bool is_hovered) {
   }
 
   this->TransformCardStatus();
+}
+
+void ImInfoCardStage::Show(int32_t index, const ImVec2& viewpoint_size,
+                           ImVec2* left_bottom_offset) {
+  if (left_bottom_offset == nullptr) return;
+
+  // Basic window settings.
+  const float window_opacity = this->GetWindowOpacity();
+  const std::string window_name = "##InfoCard" + std::to_string(index);
+
+  // Window setup and initialization.
+  ImGui::SetNextWindowBgAlpha(window_opacity);
+  ImGui::SetNextWindowPos(*left_bottom_offset, ImGuiCond_Always,
+                          ImVec2(0.0f, 1.0f));
+
+  // Card window rendering.
+  {
+    ImGui::Begin(window_name.c_str(), nullptr, kInfoCardWindowFlags);
+    ImGui::PushTextWrapPos(kCardTextWidth);
+
+    // Title field
+    if (this->get_stage() != ImInfoCardStageCode::UNKNOWN) {
+      ImGui::TextColored(this->get_icon_color_by_stage(),
+                         this->get_icon_by_stage());
+      ImGui::SameLine();
+      ImGui::TextColored(
+          this->get_icon_color_by_stage(),
+          (this->get_stage_prefix() + this->get_title()).c_str());
+      ImGui::Separator();
+    }
+
+    // Content field
+    ImGui::Text(this->get_visible_content().c_str());
+
+    // Update window offset.
+    left_bottom_offset->y -= ImGui::GetWindowHeight() + kCardHorizontalInterval;
+
+    // Update and determine if the window shoule change status.
+    UpdateCardStatus(ImGui::IsWindowHovered(kInfoCardIsHoveredFlags));
+
+    ImGui::PopTextWrapPos();
+    ImGui::End();
+  }
+}
+
+void ImInfoCardStage::UpdateCardStatus(bool is_hovered) {
+  // The card will only be hidden if it is ended successfully.
+  if (is_hovered) {
+    switch (this->get_status()) {
+      case ImInfoCardStatus::PREPARE: {
+        this->set_status(ImInfoCardStatus::EXECUTE);
+        break;
+      }
+      case ImInfoCardStatus::EXECUTE: {
+        DelayLifeTime();
+        break;
+      }
+      case ImInfoCardStatus::CLEAR: {
+        this->set_status(ImInfoCardStatus::EXECUTE);
+        this->DelayLifeTime();
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+  } else if (stage_ != ImInfoCardStageCode::SUCCESS) {
+    this->set_status(ImInfoCardStatus::EXECUTE);
+    this->DelayLifeTime();
+  }
+
+  this->TransformCardStatus();
+}
+
+void ImInfoCenter::SetCardProgress(int32_t index, float progress) {
+  auto* progress_bar_ptr = GetCardPtr<ImInfoCardProgressBar>(index);
+  if (progress_bar_ptr == nullptr) return;
+
+  op_lock_.lock();
+  progress_bar_ptr->set_progress(progress);
+  op_lock_.unlock();
+}
+
+void ImInfoCenter::IncreaseCardProgress(int32_t index, float progress) {
+  auto* progress_bar_ptr = GetCardPtr<ImInfoCardProgressBar>(index);
+  if (progress_bar_ptr == nullptr) return;
+
+  op_lock_.lock();
+  progress_bar_ptr->increase_progress(progress);
+  op_lock_.unlock();
+}
+
+void ImInfoCenter::SetCardStage(int32_t index,
+                                const ImInfoCardStageCode& stage) {
+  auto* stage_ptr = GetCardPtr<ImInfoCardStage>(index);
+  if (stage_ptr == nullptr) return;
+
+  op_lock_.lock();
+  stage_ptr->set_stage(stage);
+  op_lock_.unlock();
+}
+
+void ImInfoCenter::Show() {
+  const ImVec2 viewpoint_size = ImGui::GetMainViewport()->Size;
+  ImVec2 left_bottom_offset{kCardVerticalInterval,
+                            viewpoint_size.y - kCardHorizontalInterval};
+
+  op_lock_.lock();
+  for (auto iter = card_status_.begin(); iter != card_status_.end();) {
+    if (iter->second.get()->get_status() == ImInfoCardStatus::TERMINATE) {
+      iter = card_status_.erase(iter);
+    } else {
+      iter->second->Show(iter->first, viewpoint_size, &left_bottom_offset);
+      iter++;
+    }
+  }
+  op_lock_.unlock();
 }
 
 }  // namespace ImInfo
