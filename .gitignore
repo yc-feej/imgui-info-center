@@ -1,0 +1,8 @@
+.vscode/
+.cache/
+/bazel-*
+imgui.ini
+*.pyc
+__pycache__
+
+coverage.xml

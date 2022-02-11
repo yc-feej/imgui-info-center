@@ -9,5 +9,5 @@ cc_library(
         "font_awesome_5.h",
         "imgui_info_center.h",
     ],
-    deps = ["//third_party/imgui"],
+    deps = ["@imgui"],
 )
