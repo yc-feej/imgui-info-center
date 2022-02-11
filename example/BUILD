@@ -18,7 +18,7 @@ cc_binary(
     deps = [
         ":font_deps",
         "//src:imgui_info_center",
-        "//third_party/imgui",
         "@glfw",
+        "@imgui",
     ],
 )

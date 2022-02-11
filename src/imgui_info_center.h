@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "font_awesome_5.h"
-#include "third_party/imgui/imgui.h"
+#include "imgui/imgui.h"
 
 namespace ImInfo {
 

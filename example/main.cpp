@@ -4,19 +4,14 @@
 #include <string>
 #include <vector>
 
-#include "GL/glew.h"
-#include "GL/glu.h"
-#include "GL/glut.h"
-//
-#include "GL/gl.h"
 #include "GLFW/glfw3.h"
 #include "fa_solid_900.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+#include "imgui/imgui_stdlib.h"
 #include "src/imgui_info_center.h"
 #include "tahoma.h"
-#include "third_party/imgui/imgui.h"
-#include "third_party/imgui/imgui_impl_glfw.h"
-#include "third_party/imgui/imgui_impl_opengl3.h"
-#include "third_party/imgui/imgui_stdlib.h"
 
 void SetStyle() {
   auto& style = ImGui::GetStyle();
@@ -98,11 +93,6 @@ int main() {
   }
   glfwMakeContextCurrent(main_window);
   glfwSwapInterval(1);  // Enable vsync
-
-  // GLEW Initializer.
-  if (glewInit() != 0) {
-    return 1;
-  }
 
   // IMGUI Initializer.
   IMGUI_CHECKVERSION();
