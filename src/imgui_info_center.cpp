@@ -35,7 +35,12 @@ void ImInfoCardBasic::Show(int32_t index, const ImVec2& viewpoint_size,
     }
 
     // Content field
-    ImGui::Text(visible_content_.c_str());
+    ImGui::TextWrapped(visible_content_.c_str());
+
+    // Copy button, allow to copy card content.
+    if (ImGui::Button(kButtonCopy, ImVec2(0, 30.0f))) {
+      ImGui::SetClipboardText(visible_content_.c_str());
+    }
 
     // Update window offset.
     left_bottom_offset->y -= ImGui::GetWindowHeight() + kCardHorizontalInterval;
@@ -165,6 +170,11 @@ void ImInfoCardProgressBar::Show(int32_t index, const ImVec2& viewpoint_size,
     ImGui::Text(this->get_visible_content().c_str());
     ImGui::Text("Progress: %.2f percent", progress_);
 
+    // Copy button, allow to copy card content.
+    if (ImGui::Button(kButtonCopy, ImVec2(0, 30.0f))) {
+      ImGui::SetClipboardText(this->get_visible_content().c_str());
+    }
+
     // Update window offset.
     left_bottom_offset->y -= ImGui::GetWindowHeight() + kCardHorizontalInterval;
 
@@ -241,6 +251,11 @@ void ImInfoCardStage::Show(int32_t index, const ImVec2& viewpoint_size,
 
     // Content field
     ImGui::Text(this->get_visible_content().c_str());
+
+    // Copy button, allow to copy card content.
+    if (ImGui::Button(kButtonCopy, ImVec2(0, 30.0f))) {
+      ImGui::SetClipboardText(this->get_visible_content().c_str());
+    }
 
     // Update window offset.
     left_bottom_offset->y -= ImGui::GetWindowHeight() + kCardHorizontalInterval;

@@ -41,6 +41,8 @@ constexpr int64_t kInfoCardIsHoveredFlags =
     ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
     ImGuiHoveredFlags_AllowWhenBlockedByPopup;
 
+constexpr char kButtonCopy[] = "Copy";
+
 enum class ImInfoCardStatus { PREPARE, EXECUTE, CLEAR, TERMINATE };
 
 enum class ImInfoCardType { UNKNOWN, SUCCESS, INFO, WARNING, ERROR };
