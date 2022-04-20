@@ -1,0 +1,24 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: 
+      - main
+
+jobs:
+  build:
+
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Build lib
+        run: bazel build //src:imgui_info_center
+      
+      - name: Build example
+        run: bazel build //example:info_center_example
