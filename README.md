@@ -1,5 +1,7 @@
 # ImGui info-center
 
+[![C/C++ CI](https://github.com/yc-feej/imgui-info-center/actions/workflows/cpp-ci.yaml/badge.svg?branch=main)](https://github.com/yc-feej/imgui-info-center/actions/workflows/cpp-ci.yaml)
+
 ## Introduction
 
 An integrated notification and information center created with dear ImGui.
