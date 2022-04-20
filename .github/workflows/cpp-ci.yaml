@@ -25,7 +25,7 @@ jobs:
         with:
           path: |
             ~/.cache/bazel
-          key: ${{ runner.os}}-{{ env.version}}-bazel-cache
+          key: ${{ runner.os }}-{{ env.version }}-bazel-cache
 
       - name: Install bazelisk
         run: |
