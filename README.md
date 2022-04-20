@@ -1,6 +1,6 @@
 # ImGui info-center
 
-[![C/C++ CI](https://github.com/yc-feej/imgui-info-center/actions/workflows/cpp-ci.yaml/badge.svg?branch=main&event=push)](https://github.com/yc-feej/imgui-info-center/actions/workflows/cpp-ci.yaml)
+[![C/C++ CI](https://github.com/yc-feej/imgui-info-center/actions/workflows/cpp-ci.yaml/badge.svg?branch=main&event=push)](https://github.com/yc-feej/imgui-info-center/actions/workflows/cpp-ci.yaml) [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/yc-feej/imgui-info-center/blob/main/LICENSE)
 
 ## Introduction
 
@@ -20,7 +20,7 @@ Most features shown below could be used individually. For example, `ImInfoCenter
 
 Provides small suspending information card when something worth notifying happens. User can define title, content, progress bar, buttons and maybe some other stuffs on their own, as well as lifetime of each card. It behaves intuitively with interactions.
 
-**GIF to be added**
+![](example/example_brief.gif)
 
 ### Info Center -- `ImInfoCenter`
 
