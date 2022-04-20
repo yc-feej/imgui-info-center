@@ -34,9 +34,9 @@ constexpr int64_t kTransitTime = 300;
 // has passed.
 constexpr int64_t kImmediateClearTime = 2000;
 
-constexpr int64_t kInfoCardWindowFlags = ImGuiWindowFlags_AlwaysAutoResize |
-                                         ImGuiWindowFlags_NoDecoration |
-                                         ImGuiWindowFlags_NoNav;
+constexpr int64_t kInfoCardWindowFlags =
+    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration |
+    ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
 constexpr int64_t kInfoCardIsHoveredFlags =
     ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
     ImGuiHoveredFlags_AllowWhenBlockedByPopup;
