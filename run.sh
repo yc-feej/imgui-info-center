@@ -9,3 +9,7 @@ is_in_bazel_repo() {
 run_example() {
   is_in_bazel_repo && bazel run @imgui-info-center//example:info_center_example
 }
+
+build_example_web() {
+  is_in_bazel_repo && bazel build //example:web_example-wasm
+}
