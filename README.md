@@ -1,6 +1,6 @@
 # ImGui info-center
 
-[![C/C++ CI](https://github.com/yc-feej/imgui-info-center/actions/workflows/cpp-ci.yaml/badge.svg?branch=main&event=push)](https://github.com/yc-feej/imgui-info-center/actions/workflows/cpp-ci.yaml) [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/yc-feej/imgui-info-center/blob/main/LICENSE)
+[![C/C++ CI](https://github.com/yc-feej/imgui-info-center/actions/workflows/cpp-ci.yaml/badge.svg?branch=main&event=push)](https://github.com/yc-feej/imgui-info-center/actions/workflows/cpp-ci.yaml) [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/yc-feej/imgui-info-center/blob/main/LICENSE) [![forthebadge](https://forthebadge.com/images/badges/works-on-my-machine.svg)](https://forthebadge.com)
 
 ## Introduction
 
